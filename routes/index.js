@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/upload', (req, res, next) => {
 
-  const form = formidable({ multiples: true });
+  const form = formidable({ multiples: true, uploadDir: './uploads' });
 
   form.parse(req, (err, fields, files) => {
     if (err) {

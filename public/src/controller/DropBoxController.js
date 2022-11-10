@@ -5,11 +5,12 @@ class DropBoxController {
       this.inputFilesEl = document.querySelector("#files");
       this.snackModalEl = document.querySelector("#react-snackbar-root");
       this.progessBarEl = this.snackModalEl.querySelector(".mc-progress-bar-fg");
-      this.nameFileEl = this.snackModalEl.querySelector('.filename');
+      this.nameFileEl = this.snackModalEl.querySelector('.filename'); 
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
-      
+      this.listFilesEl = document.querySelector('#list-of-files-and-directories')
       this.connectFirebase();
       this.initEvents();
+      this.readFiles(); 
 
     }
 
@@ -34,37 +35,31 @@ class DropBoxController {
       });
   
       this.inputFilesEl.addEventListener("change", (event) => {
-
+        this.btnSendFileEl.disabled = true;
         this.uploadTask(event.target.files).then(responses => {
 
           responses.forEach(async res => {
           let item = res.files['input-file']
-
-
-            this.getFirebaseRef().push().set(item)
-             
-     /*        const docRef = this.dbFirebase.collection('files').doc('alovelace');
-
-            await docRef.set({
-              first: 'Ada',
-              last: 'Lovelace',
-              born: 1815
-            }); */
-
-         /*    const docRef = this.dbFirebase;
-             docRef.set(item) */
-
-
+            this.getFirebaseRef().push().set(item);
 
           });
-          
-          this.modalShow(false);
+          this.uploadComplete()
+        }).catch(err => {
+          this.uploadComplete();
+          console.log(err)
         })
         
         this.modalShow();
 
         this.inputFilesEl.value = ''
       });
+    }
+
+    uploadComplete(){
+
+      this.modalShow(false);
+      this.btnSendFileEl.disabled = false;
+      this.inputFilesEl.value = ''
     }
 
     getFirebaseRef(){
@@ -148,8 +143,9 @@ class DropBoxController {
     }
 
 
-    getFileIconView(file) {
-      switch (file.type) {
+    getFileIconView(file) {      console.log('mimetype')
+      switch (file.mimetype) {/* mimetype */
+
         case 'folder':
           return `
           <svg width="160" height="160" viewBox="0 0 160 160" class="mc-icon-template-content tile__preview tile__preview--icon">
@@ -249,7 +245,9 @@ class DropBoxController {
         case 'image/jpg':
         case 'image/png':
         case 'image/gif': 
+        console.log('mimetype entro na imagem')
           return `
+          
             <svg version="1.1" id="Camada_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="160px" height="160px" viewBox="0 0 160 160" enable-background="new 0 0 160 160" xml:space="preserve">
                 <filter height="102%" width="101.4%" id="mc-content-unknown-large-a" filterUnits="objectBoundingBox" y="-.5%" x="-.7%">
                   <feOffset result="shadowOffsetOuter1" in="SourceAlpha" dy="1"></feOffset>
@@ -313,16 +311,31 @@ class DropBoxController {
       }
     }
   
-    getFileView(file) {
-      return `
-        <li>
-          ${this.getFileIconView(file)}
-          <div class="name text-center">${file.name}s</div>
-        </li>
-      `
+    getFileView(file, key) {
+
+      let li = document.createElement('li')
+
+      li.dataset.key = key
+
+
+      
+    li.innerHTML = `
+    ${this.getFileIconView(file)}
+    <div class="name text-center">${file.originalFilename}</div>`
+
+    return  li
     }
   
-
+    readFiles() {
+      this.getFirebaseRef().on('value', snapshot => {/* Quando há mudança ele dispara esse event value */
+        this.listFilesEl.innerHTML = '';
+        snapshot.forEach(snapshotItem => {
+          let key = snapshotItem.key;
+          let data = snapshotItem.val()
+          this.listFilesEl.appendChild(this.getFileView(data, key))
+        })
+      })
+    }
 
 
   }

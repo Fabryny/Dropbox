@@ -1,4 +1,5 @@
- class DropBoxController {
+
+class DropBoxController {
     constructor() {
       this.btnSendFileEl = document.querySelector("#btn-send-file");
       this.inputFilesEl = document.querySelector("#files");
@@ -6,32 +7,55 @@
       this.progessBarEl = this.snackModalEl.querySelector(".mc-progress-bar-fg");
       this.nameFileEl = this.snackModalEl.querySelector('.filename');
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
-     /*  
-      this.connectFirebase(); */
+      
+      this.connectFirebase();
       this.initEvents();
+
     }
 
- /*    connectFirebase(){
-      
-     
+    connectFirebase(){
+       const firebaseConfig = {
+          apiKey: "AIzaSyA1I_BvIfQ-ny5jaOe86PLYfWD61b6CrJ0",
+          authDomain: "dropbox-93dd0.firebaseapp.com",
+          databaseURL: "https://dropbox-93dd0-default-rtdb.firebaseio.com",
+          projectId: "dropbox-93dd0",
+          storageBucket: "dropbox-93dd0.appspot.com",
+          messagingSenderId: "727889418365",
+          appId: "1:727889418365:web:0847e25b5ed3034cf87914",
+          measurementId: "G-FEJY5K58HB"
+        };
+     firebase.initializeApp(firebaseConfig);
     
     }
-   */
+  
       initEvents() {
       this.btnSendFileEl.addEventListener("click", (event) => {
         this.inputFilesEl.click();
       });
   
       this.inputFilesEl.addEventListener("change", (event) => {
+
         this.uploadTask(event.target.files).then(responses => {
 
-          responses.forEach(res => {
-            console.log(res.files['input-file'])/* Como tem um -    colocar entre ' e [] faz com que nao de erro */
-           
-            let item = res.files['input-file']
-            const docRef = db.collection('files').doc('alovelace');
-             docRef.set(item)
-/*             this.getFirebaseRef().push().set(item) */
+          responses.forEach(async res => {
+          let item = res.files['input-file']
+
+
+            this.getFirebaseRef().push().set(item)
+             
+     /*        const docRef = this.dbFirebase.collection('files').doc('alovelace');
+
+            await docRef.set({
+              first: 'Ada',
+              last: 'Lovelace',
+              born: 1815
+            }); */
+
+         /*    const docRef = this.dbFirebase;
+             docRef.set(item) */
+
+
+
           });
           
           this.modalShow(false);
@@ -42,10 +66,10 @@
         this.inputFilesEl.value = ''
       });
     }
-/* 
+
     getFirebaseRef(){
-      return firebase.database.ref('files')
-    } */
+      return firebase.database().ref('files')
+    }
 
     modalShow(show = true){
       this.snackModalEl.style.display = (show) ? 'block' : 'none'

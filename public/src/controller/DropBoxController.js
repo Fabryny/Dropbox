@@ -1,6 +1,9 @@
 
 class DropBoxController {
     constructor() {
+
+      this.onselectionchange = new Event('selectionchange');
+
       this.btnSendFileEl = document.querySelector("#btn-send-file");
       this.inputFilesEl = document.querySelector("#files");
       this.snackModalEl = document.querySelector("#react-snackbar-root");
@@ -8,6 +11,11 @@ class DropBoxController {
       this.nameFileEl = this.snackModalEl.querySelector('.filename'); 
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
       this.listFilesEl = document.querySelector('#list-of-files-and-directories')
+
+      this.btnNewFolder = document.querySelector('#btn-new-folder')
+      this.btnRename = document.querySelector('#btn-rename')
+      this.btnDelete = document.querySelector('#btn-delete')
+  
       this.connectFirebase();
       this.initEvents();
       this.readFiles(); 
@@ -28,8 +36,33 @@ class DropBoxController {
      firebase.initializeApp(firebaseConfig);
     
     }
+    
+    getSelection() {
+      return this.listFilesEl.querySelectorAll('.selected');
+    }
   
       initEvents() {
+
+      this.listFilesEl.addEventListener('selectionchange', e=> {
+         
+        switch (this.getSelection().length) {
+          case 0:
+            this.btnDelete.style.display = 'none';
+            this.btnRename.style.display = 'none';
+            break;
+          
+          case 1:
+            this.btnDelete.style.display = 'block';
+            this.btnRename.style.display = 'block';
+            break;
+  
+          default:
+            this.btnDelete.style.display = 'block';
+            this.btnRename.style.display = 'none';
+        }
+        
+      })
+
       this.btnSendFileEl.addEventListener("click", (event) => {
         this.inputFilesEl.click();
       });
@@ -143,8 +176,8 @@ class DropBoxController {
     }
 
 
-    getFileIconView(file) {      console.log('mimetype')
-      switch (file.mimetype) {/* mimetype */
+    getFileIconView(file) { 
+      switch (file.mimetype) {
 
         case 'folder':
           return `
@@ -245,7 +278,6 @@ class DropBoxController {
         case 'image/jpg':
         case 'image/png':
         case 'image/gif': 
-        console.log('mimetype entro na imagem')
           return `
           
             <svg version="1.1" id="Camada_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="160px" height="160px" viewBox="0 0 160 160" enable-background="new 0 0 160 160" xml:space="preserve">
@@ -338,11 +370,13 @@ class DropBoxController {
 
     initEventsLi(li) {
       li.addEventListener('click', e => {
+
+    
+
         if(e.shiftKey) {
           let firstLi = this.listFilesEl.querySelector('.selected')
           
-          if(firstLi) {/* 
-            console.log(li.parentElement.childNodes) */
+          if(firstLi) {
             let indexStart;
             let indexEnd;
             let lis = li.parentElement.childNodes;
@@ -359,6 +393,7 @@ class DropBoxController {
               }
             });
 
+            this.listFilesEl.dispatchEvent(this.onselectionchange)
             return true
           }
         }
@@ -368,9 +403,14 @@ class DropBoxController {
             el.classList.remove('selected')
           });
         }
+
         li.classList.toggle('selected')
+        this.listFilesEl.dispatchEvent(this.onselectionchange)
       })
     }
+
+
+
 
   }
   

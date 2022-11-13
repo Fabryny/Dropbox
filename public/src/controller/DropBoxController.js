@@ -136,11 +136,9 @@ class DropBoxController {
       this.inputFilesEl.addEventListener("change", (event) => {
         this.btnSendFileEl.disabled = true;
         this.uploadTask(event.target.files).then(responses => {
-
           responses.forEach(async res => {
           let item = res.files['input-file']
             this.getFirebaseRef().push().set(item);
-
           });
           this.uploadComplete()
         }).catch(err => {
@@ -150,8 +148,8 @@ class DropBoxController {
         
         this.modalShow();
 
-        this.inputFilesEl.value = ''
       });
+
     }
 
     uploadComplete(){
@@ -205,7 +203,6 @@ class DropBoxController {
   
     uploadTask(files) {
       let promises = [];
-  
       /* files vem como coleção, tem que converder em array*/
       [...files].forEach( (file) => {
         let formData = new FormData();
@@ -265,7 +262,6 @@ class DropBoxController {
 
 
     getFileIconView(file) { 
-      console.log(file)
       switch (file.mimetype ? file.mimetype : file.type) {
 
         case 'folder':
@@ -433,7 +429,6 @@ class DropBoxController {
     }
   
     getFileView(file, key) {
-
       let li = document.createElement('li')
 
       li.dataset.key = key
@@ -457,7 +452,7 @@ class DropBoxController {
           let key = snapshotItem.key;
           let data = snapshotItem.val()
 
-          if( data.type){
+          if( data.type || data.mimetype){
 
             this.listFilesEl.appendChild(this.getFileView(data, key))
           }
@@ -483,7 +478,7 @@ class DropBoxController {
   
         path.push(folderName);
   
-        if ( i === this.currentFolder.length - 1) {
+        if ( i === (this.currentFolder.length - 1)) {
   
           span.innerHTML = folderName;
   
@@ -522,9 +517,6 @@ class DropBoxController {
     li.addEventListener('dblclick', e => {
 
       let file = JSON.parse(li.dataset.file);
-
-      console.log(file,'file')
-
       switch (file.type) {
         case 'folder':
           this.currentFolder.push(file.name)
@@ -532,7 +524,7 @@ class DropBoxController {
           break;
 
         default:
-          window.open('/file?path=' + file.path)
+          window.open('/file?path=' + (file.path ? file.path : file.filepath))
       }
 
     })

@@ -8,32 +8,55 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.get('/file', function(req, res) {
+
+  let path =  req.query.path
+  if (fs.existsSync(path)){
+    
+      fs.readFile(path, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(400).json({
+            error: err
+          })
+        } else {
+          res.status(200).end(data)
+        }
+      })
+  } else {
+    res.status(404).json({
+      error: 'File not foundsss'
+    })
+  }
+
+});
+
 router.delete('/file', (req, res) => {
   const form = formidable({ multiples: true, uploadDir: './uploads' });
   form.parse(req, (err, fields, files) => {
     let path =  fields.path
     if (fs.existsSync(path)){
       fs.unlink(path, err => {
-        if(err) {   console.log('entrou aq nounlinik ERRO',path)
+        if(err) { 
           res.status(400).json({
             err
           });
         } else {
-          console.log('entrou aq nounlinik',path)
           res.json({
             fields
           })
         }
       });
-    } else {
-      console.log('nao tem path')
+    }  else {
+      res.status(404).json({
+        error: 'File not found'
+      })
     }
  
   });
 });
 
 router.post('/upload', (req, res, next) => {
-  console.log('upload')
   const form = formidable({ multiples: true, uploadDir: './uploads' });
 
   form.parse(req, (err, fields, files) => {

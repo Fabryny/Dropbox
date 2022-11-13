@@ -136,10 +136,22 @@ class DropBoxController {
       this.inputFilesEl.addEventListener("change", (event) => {
         this.btnSendFileEl.disabled = true;
         this.uploadTask(event.target.files).then(responses => {
-          responses.forEach(async res => {
+
+          console.log(responses)
+          responses.forEach( res => {
+              this.getFirebaseRef().push().set({
+                name: res.name,
+                type: res.contentType,
+                path: res.downloadURLs[0],
+                size: res.size
+              });
+            })
+
+       /*    responses.forEach(async res => {
           let item = res.files['input-file']
             this.getFirebaseRef().push().set(item);
-          });
+          }); */
+
           this.uploadComplete()
         }).catch(err => {
           this.uploadComplete();
@@ -202,10 +214,43 @@ class DropBoxController {
     }
   
     uploadTask(files) {
+
       let promises = [];
       /* files vem como coleção, tem que converder em array*/
       [...files].forEach( (file) => {
-        let formData = new FormData();
+  
+        promises.push(new Promise((resolve, reject) => {
+      
+          let fileRef = firebase.storage().ref(this.currentFolder.join('/')).child(file.name) /* Cria referencia e um arquivo */
+        
+          let task = fileRef.put(file);
+  
+          task.on('state_changed', snapshot => {
+            this.uploadProgress({
+              loaded: snapshot. bytesTransferred,
+              total: snapshot.totalBytes
+            }, file);
+            console.log('prog', snapshot)
+          }, error => {
+              console.error(error);
+              reject(error)
+          }, () => {
+            console.log(fileRef)
+            fileRef.getMetadata().then(metadata => {
+     
+              resolve(metadata)
+            }).catch(err=> {
+              reject(err)
+            })
+          });
+          
+        }));
+
+      });
+      return Promise.all(promises) /* Se for sucesso da resolve, se der problema: reject  */
+    /*  
+        Utilizado salvando localmente
+    let formData = new FormData();
 
         formData.append("input-file", file);
   
@@ -221,10 +266,14 @@ class DropBoxController {
               this.startUploadTime = Date.now();
             }
           )
-        );
-      });
+        ); 
+        
+              return Promise.all(promises) /* Se for sucesso da resolve, se der problema: reject  */
+        
+        
+
+
   
-      return Promise.all(promises) /* Se for sucesso da resolve, se der problema: reject  */
     }
   
     uploadProgress(event, file) {

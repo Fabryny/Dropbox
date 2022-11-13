@@ -11,11 +11,8 @@ router.get('/', function(req, res, next) {
 router.delete('/file', (req, res) => {
   const form = formidable({ multiples: true, uploadDir: './uploads' });
   form.parse(req, (err, fields, files) => {
-    console.log('aaaaaaa',fields.path)
     let path =  fields.path
-    console.log(path)
     if (fs.existsSync(path)){
-      console.log('entrou aq')
       fs.unlink(path, err => {
         if(err) {   console.log('entrou aq nounlinik ERRO',path)
           res.status(400).json({
